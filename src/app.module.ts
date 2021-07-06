@@ -5,6 +5,7 @@ import { EventsController } from './events/events.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Event } from './events/event.entity';
 import { EventsModule } from './events/events.module';
+import { AppJapanService } from './app.japan.service';
 
 @Module({
   imports: [
@@ -20,7 +21,12 @@ import { EventsModule } from './events/events.module';
     }),
     EventsModule,
   ],
-  controllers: [AppController, EventsController],
-  providers: [AppService],
+  controllers: [AppController],
+  providers: [
+    {
+      provide: AppService,
+      useClass: AppJapanService,
+    },
+  ],
 })
 export class AppModule {}
