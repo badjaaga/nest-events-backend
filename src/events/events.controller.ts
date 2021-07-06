@@ -8,7 +8,6 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  ValidationPipe,
 } from '@nestjs/common';
 import { UpdateEventDto } from './update-event.dto';
 import { Event } from './event.entity';
