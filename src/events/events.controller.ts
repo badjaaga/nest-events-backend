@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   Logger,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -52,9 +53,13 @@ export class EventsController {
   }
 
   @Get('/:id')
-  async findOne(@Param('id', ParseIntPipe) id) {
-    console.log(typeof id);
-    return await this.repository.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    /* console.log(typeof id);*/
+    const event = await this.repository.findOne(id);
+    if (!event) {
+      throw new NotFoundException();
+    }
+    return event;
   }
 
   @Post()
