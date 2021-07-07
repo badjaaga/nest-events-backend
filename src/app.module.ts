@@ -13,7 +13,7 @@ import ormConfigProd from './config/orm.config.prod';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      ignoreEnvFile: true,
+      /*ignoreEnvFile: true,*/
       envFilePath: '.env',
       load: [ormConfig],
       expandVariables: true,
