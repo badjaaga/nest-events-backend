@@ -10,13 +10,16 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
-import { UpdateEventDto } from './update-event.dto';
+import { UpdateEventDto } from './input/update-event.dto';
 import { Event } from './event.entity';
-import { CreateEventDto } from './create-event.dto';
+import { CreateEventDto } from './input/create-event.dto';
 import { Like, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Attendee } from './attendee.entity';
+import { ListEvents } from './input/list.events';
+import { EventService } from './event.service';
 
 @Controller('/events')
 export class EventsController {
@@ -26,10 +29,11 @@ export class EventsController {
     private readonly repository: Repository<Event>,
     @InjectRepository(Attendee)
     private readonly attendeeRepository: Repository<Attendee>,
+    private readonly eventsService: EventService,
   ) {}
 
   @Get()
-  async findAll() {
+  async findAll(@Query() filter: ListEvents) {
     this.logger.log(`Hit the FindAll route`);
     const events = await this.repository.find();
     this.logger.debug(`Found ${events.length} events`);
@@ -70,7 +74,7 @@ export class EventsController {
   @Get('/:id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     /* console.log(typeof id);*/
-    const event = await this.repository.findOne(id);
+    const event = await this.eventsService.getEvent(id);
     if (!event) {
       throw new NotFoundException();
     }
