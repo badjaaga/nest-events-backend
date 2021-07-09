@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable, Logger } from '@nestjs/common';
 import { AttendeeAnswerEnum } from './attendee.entity';
 import { ListEvents, WhenEventFilter } from './input/list.events';
+import { paginate, PaginateOptions } from '../pagination/paginator';
 
 @Injectable()
 export class EventService {
@@ -20,7 +21,7 @@ export class EventService {
       .orderBy('e.id', 'DESC');
   }
 
-  public getEventsWithAttendeeCountQuery() {
+  private getEventsWithAttendeeCountQuery() {
     return this.getEventsBaseQuery()
       .loadRelationCountAndMap('e.attendeeCount', 'e.attendees')
       .loadRelationCountAndMap(
@@ -55,7 +56,7 @@ export class EventService {
   public async getEventsWithAttendeeCountFiltered(filter?: ListEvents) {
     let query = this.getEventsWithAttendeeCountQuery();
     if (!filter) {
-      return query.getMany();
+      return query;
     }
     if (filter.time == WhenEventFilter.Today) {
       query = query.andWhere(
@@ -77,7 +78,17 @@ export class EventService {
         'EXTRACT(WEEK FROM e.time) = (EXTRACT(WEEK FROM CURRENT_DATE)+1)',
       );
     }
-    return await query.getMany();
+    return await query;
+  }
+
+  public async getEventWithAttendeeCountFilteredPaginated(
+    filter: ListEvents,
+    paginateOptions: PaginateOptions,
+  ) {
+    return await paginate(
+      await this.getEventsWithAttendeeCountFiltered(filter),
+      paginateOptions,
+    );
   }
 
   public async getEvent(id: number): Promise<Event | undefined> {
