@@ -6,6 +6,6 @@ export enum WhenEventFilter {
   All = 1,
   Today,
   Tomorrow,
-  THisWeek,
+  ThisWeek,
   NextWeek,
 }

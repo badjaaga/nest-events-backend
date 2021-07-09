@@ -34,8 +34,11 @@ export class EventsController {
 
   @Get()
   async findAll(@Query() filter: ListEvents) {
+    this.logger.debug(filter);
     this.logger.log(`Hit the FindAll route`);
-    const events = await this.repository.find();
+    const events = await this.eventsService.getEventsWithAttendeeCountFiltered(
+      filter,
+    );
     this.logger.debug(`Found ${events.length} events`);
     return events;
   }
