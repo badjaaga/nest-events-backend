@@ -6,7 +6,7 @@ export class Event {
   @PrimaryGeneratedColumn()
   id: number;
   @Column()
-  name: string;
+  dname: string;
   @Column()
   description: string;
   @Column()

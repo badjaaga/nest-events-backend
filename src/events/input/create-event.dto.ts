@@ -7,6 +7,6 @@ export class CreateEventDto {
   description: string;
   @IsDateString()
   time: Date;
-  @Length(5, 255 )
+  @Length(5, 255)
   address: string;
 }
