@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   ForbiddenException,
@@ -12,7 +13,9 @@ import {
   Patch,
   Post,
   Query,
+  SerializeOptions,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -29,6 +32,9 @@ import { User } from '../auth/user.entity';
 import { AuthGuardJwt } from '../auth/auth-guard.jwt';
 
 @Controller('/events')
+@SerializeOptions({
+  strategy: 'excludeAll',
+})
 export class EventsController {
   private readonly logger = new Logger(EventsController.name);
 
@@ -42,6 +48,7 @@ export class EventsController {
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
+  @UseInterceptors(ClassSerializerInterceptor)
   async findAll(@Query() filter: ListEvents) {
     this.logger.debug(filter);
     this.logger.log(`Hit the FindAll route`);
@@ -50,7 +57,7 @@ export class EventsController {
       {
         total: true,
         currentPage: filter.page,
-        limit: 10,
+        limit: 2,
       },
     );
   }
@@ -87,6 +94,7 @@ export class EventsController {
   }
 
   @Get('/:id')
+  @UseInterceptors(ClassSerializerInterceptor)
   async findOne(@Param('id', ParseIntPipe) id: number) {
     /* console.log(typeof id);*/
     const event = await this.eventsService.getEvent(id);
@@ -98,18 +106,20 @@ export class EventsController {
 
   @Post()
   @UseGuards(AuthGuardJwt)
+  @UseInterceptors(ClassSerializerInterceptor)
   async create(@Body() input: CreateEventDto, @CurrentUser() user: User) {
     await this.eventsService.createEvent(input, user);
   }
 
   @Patch(':id')
   @UseGuards(AuthGuardJwt)
+  @UseInterceptors(ClassSerializerInterceptor)
   async update(
     @Param('id') id,
     @Body() input: UpdateEventDto,
     @CurrentUser() user: User,
   ) {
-    const event = await this.repository.findOne(id);
+    const event = await this.eventsService.getEvent(id);
     if (!event) {
       throw new NotFoundException();
     }
@@ -128,7 +138,7 @@ export class EventsController {
   @UseGuards(AuthGuardJwt)
   @HttpCode(204)
   async remove(@Param('id') id, @CurrentUser() user: User) {
-    const event = await this.repository.findOne(id);
+    const event = await this.eventsService.getEvent(id);
 
     if (!event) {
       throw new NotFoundException();
