@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   Logger,
@@ -102,22 +103,44 @@ export class EventsController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id, @Body() input: UpdateEventDto) {
+  @UseGuards(AuthGuardJwt)
+  async update(
+    @Param('id') id,
+    @Body() input: UpdateEventDto,
+    @CurrentUser() user: User,
+  ) {
     const event = await this.repository.findOne(id);
-    return await this.repository.save({
-      ...event,
-      ...input,
-      time: input.time ? new Date(input.time) : event.time,
-    });
+    if (!event) {
+      throw new NotFoundException();
+    }
+
+    if (event.organizerId !== user.id) {
+      throw new ForbiddenException(
+        null,
+        `You are not authorized to update this event`,
+      );
+    }
+
+    return await this.eventsService.updateEvent(event, input);
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuardJwt)
   @HttpCode(204)
-  async remove(@Param('id') id) {
-    const result = await this.eventsService.deleteEvent(id);
+  async remove(@Param('id') id, @CurrentUser() user: User) {
+    const event = await this.repository.findOne(id);
 
-    if (result?.affected !== 1) {
+    if (!event) {
       throw new NotFoundException();
     }
+
+    if (event.organizerId !== user.id) {
+      throw new ForbiddenException(
+        null,
+        `You are not authorized to remove this event`,
+      );
+    }
+
+    await this.eventsService.deleteEvent(id);
   }
 }
